@@ -21,7 +21,7 @@ concurrency:
 jobs:
 
   job0:
-    if: github.event_name == 'workflow_dispatch' && contains(github.ref,'refs/heads/main') == false
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Run bash script
