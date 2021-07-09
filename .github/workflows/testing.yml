@@ -20,6 +20,16 @@ concurrency:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
+  debug:
+    if: github.event_name == 'pull_request' 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        run: |
+          echo "github ref" ${{ github.ref }}
+          echo "github base_ref" ${{ github.base_ref }}
+          echo "github head_ref" ${{ github.head_ref }}
+
   job0:
     if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
