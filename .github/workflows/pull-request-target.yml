@@ -1,0 +1,17 @@
+---
+name: testing-PR-target
+
+on:
+  pull_request_target:
+    branches: []
+    
+jobs:
+
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        run: |
+          echo "github ref" ${{ github.ref }}
+          echo "github base_ref" ${{ github.base_ref }}
+          echo "github head_ref" ${{ github.head_ref }}
