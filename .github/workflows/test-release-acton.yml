@@ -1,0 +1,95 @@
+---
+name: code-maven-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      BASELINE:
+        description: 'Baseline branch'
+        required: true
+        default: 'main'
+      RELEASE_LABELS:
+        description: 'Release labels (comma separated list)'
+        required: true
+        default: 'release-type/current'
+        
+ jobs:
+  release:
+    name: Release
+    concurrency: code-release-${{ github.ref }}
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get input parameters
+        run: |
+          echo "RELEASE_LABELS=${{ github.event.inputs.RELEASE_LABELS || join(github.event.pull_request.labels.*.name, ', ') }}" >> "$GITHUB_ENV"
+          echo "BASELINE_BRANCH=${{ github.event.inputs.BASELINE || github.ref }}" >> "$GITHUB_ENV"
+
+      - name: Setup current release type version
+        if: contains(env.RELEASE_LABELS, 'release-type/current')
+        run: echo "CD_ARGS=release" >> "$GITHUB_ENV"
+
+      - name: Setup patch release type version
+        if: contains(env.RELEASE_LABELS, 'release-type/hotfix')
+          || contains(env.RELEASE_LABELS, 'release-type/multi-hotfix')
+          || contains(env.RELEASE_LABELS, 'release-type/patch')
+        run: |
+          echo "CD_ARGS=release --patch" >> "$GITHUB_ENV"
+          echo "MVN_RELEASE_TYPE=-DreleaseType=patch" >> "$GITHUB_ENV"
+
+      - name: Setup minor release type version
+        if: contains(env.RELEASE_LABELS, 'release-type/minor')
+        run: |
+          echo "CD_ARGS=release --minor" >> "$GITHUB_ENV"
+          echo "MVN_RELEASE_TYPE=-DreleaseType=minor" >> "$GITHUB_ENV"
+
+      - name: Setup major release type version
+        if: contains(env.RELEASE_LABELS, 'release-type/major')
+        run: |
+          echo "CD_ARGS=release --major" >> "$GITHUB_ENV"
+          echo "MVN_RELEASE_TYPE=-DreleaseType=major" >> "$GITHUB_ENV"
+
+      - name: Setup force option
+        if: contains(env.RELEASE_LABELS, 'release-mode/force')
+        run: |
+          echo "CD_ARGS=$CD_ARGS --force-release-mode" >> "$GITHUB_ENV"
+          echo "MVN_RELEASE_ARGS=-DreleaseForce" >> "$GITHUB_ENV"
+
+      - name: Checkout merge commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BASELINE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      
+
+      - name: Update CHANGELOG.md
+        if: ${{ !contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}
+        id: cdrafter
+        run: |
+          echo "1.0.0" > /tmp/.version
+          echo "RELEASE_VERSION=$(cat /tmp/.version)" >> "$GITHUB_ENV"
+
+      - name: GitHub Release / Get final version number from latest tag in branch
+        if: ${{ contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}
+        run: echo "RELEASE_VERSION=$(git describe --tags --abbrev=0)" >> "$GITHUB_ENV"
+
+      - name: Prepare release body content
+        run: |
+          cat ./assets/release-content-tpl.md > /tmp/github-release-body.md
+          
+          if [[ "${{ contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}" != "true" ]] ;
+          then
+              cat /tmp/.whats-changed.md >> /tmp/github-release-body.md
+          fi
+
+      - name: GitHub Release / Create release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: ${{ env.RELEASE_VERSION }}
+          body_path: |
+            /tmp/github-release-body.md
