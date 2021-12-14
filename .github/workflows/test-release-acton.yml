@@ -78,7 +78,7 @@ jobs:
 
     - name: GitHub Release / Get final version number from latest tag in branch
       if: ${{ contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}
-      run: echo "RELEASE_VERSION=$(git describe --tags --abbrev=0)" >> "$GITHUB_ENV"
+      run: echo "RELEASE_VERSION=3.0.0" >> "$GITHUB_ENV"
 
     - name: Prepare release body content
       run: |
