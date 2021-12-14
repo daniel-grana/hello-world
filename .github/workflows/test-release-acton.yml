@@ -70,6 +70,11 @@ jobs:
       run: |
         echo "1.0.0" > /tmp/.version
         echo "RELEASE_VERSION=$(cat /tmp/.version)" >> "$GITHUB_ENV"
+    
+    - name: Whats changed in CHANGELOG.md
+      if: ${{ !contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}
+      run: |
+        echo "This is a fake change" > /tmp/.whats-changed.md
 
     - name: GitHub Release / Get final version number from latest tag in branch
       if: ${{ contains(env.RELEASE_LABELS, 'release-mode/skip-changelog') }}
