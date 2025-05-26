@@ -36,6 +36,7 @@ jobs:
         run: |
           # Extract the domain from the input space URL and remove protocol prefix if present
           full_url="${{ github.event.inputs.URL }}"
+          full_url2="https://www.google.com/"
           ## test1
           ####### aux=$(jq -nc '{urls: ($ARGS.positional[0] | split(" "))}' --args $full_url)
           ####### echo "urls=$aux" >> $GITHUB_OUTPUT
@@ -46,7 +47,7 @@ jobs:
           ####### json_output="{ \"urls\": [$json_elements] }"
           ####### echo "urls=$json_output" | tee -a "$GITHUB_OUTPUT"
           #echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
-          echo "matrix={\"urls\":[\"$full_url\"]}" >> $GITHUB_OUTPUT
+          echo "matrix={\"urls\":[\"$full_url\",\"$full_url2\"]}" >> $GITHUB_OUTPUT
 
       #- name: Set job output
       #  id: urls
@@ -64,7 +65,5 @@ jobs:
     steps:
       
       - name: Log variables
-        env:
-          JSON_MATRIX: ${{ toJSON(matrix) }}
         run: |
-          echo "JSON_MATRIX: $JSON_MATRIX"
+          echo ${{ matrix.urls }}
