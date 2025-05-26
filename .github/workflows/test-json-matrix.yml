@@ -1,0 +1,51 @@
+---
+name: test-json-matrix
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+        URL:
+          description: 'URL'
+          required: false
+
+jobs:
+  get-urls:
+    name: Get Urls
+    runs-on: "ubuntu-24.04"
+    outputs:
+        spaces: ${{ steps.urls.outputs.urls }}
+    steps:
+      - name: Get urls from input
+        id: urls-from-input
+        run: |
+          # Extract the domain from the input space URL and remove protocol prefix if present
+          full_url="${{ github.event.inputs.URL }}"
+          aux={\"urls\":[\"$full_url\"]}
+          echo "urls=$aux" >> $GITHUB_OUTPUT
+
+      - name: Set job output
+        id: urls
+        run: |
+          echo "urls=${{ steps.urls-from-input.outputs.urls }}"
+          echo "urls=${{ steps.urls-from-input.outputs.urls }}" >> $GITHUB_OUTPUT
+
+  synchronize:
+    needs: get-urls
+    name: "Running matrix"
+    timeout-minutes: 20
+    runs-on: "ubuntu-24.04"
+    strategy:
+      matrix: ${{ fromJSON(needs.get-urls.outputs.urls) }}
+    steps:
+      
+      - name: Log variables
+        env:
+          JSON_MATRIX: ${{ toJSON(matrix) }}
+          MATRIX_SPACE: ${{ toJSON(matrix.urls) }}
+        run: |
+          echo "MATRIX_SPACE: $MATRIX_SPACE"
+          echo "JSON_MATRIX: $JSON_MATRIX"
