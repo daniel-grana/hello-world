@@ -56,13 +56,14 @@ jobs:
     timeout-minutes: 20
     runs-on: "ubuntu-24.04"
     strategy:
-      matrix: ${{ fromJSON(needs.get-urls.outputs.urls) }}
+      matrix: 
+        url: ${{ fromJSON(needs.get-urls.outputs.urls) }}
     steps:
       
       - name: Log variables
         env:
           JSON_MATRIX: ${{ toJSON(matrix) }}
-          MATRIX_SPACE: ${{ toJSON(matrix.urls) }}
+          MATRIX_URL: ${{ toJSON(matrix.url) }}
         run: |
-          echo "MATRIX_SPACE: $MATRIX_SPACE"
+          echo "MATRIX_URL: $MATRIX_URL"
           echo "JSON_MATRIX: $JSON_MATRIX"
