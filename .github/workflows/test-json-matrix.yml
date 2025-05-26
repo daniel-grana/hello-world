@@ -45,7 +45,8 @@ jobs:
           ####### json_elements=$(IFS=,; echo "${json_array[*]}")
           ####### json_output="{ \"urls\": [$json_elements] }"
           ####### echo "urls=$json_output" | tee -a "$GITHUB_OUTPUT"
-          echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
+          #echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
+          echo "matrix={\"urls\":[\"$full_url\"]}" >> $GITHUB_OUTPUT
 
       #- name: Set job output
       #  id: urls
