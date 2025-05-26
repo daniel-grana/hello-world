@@ -13,11 +13,12 @@ on:
           required: false
 
 jobs:
-  get-urls:
+  get-urls-from-input:
     name: Get Urls
     runs-on: "ubuntu-24.04"
+    if: github.event.inputs.URL != ''
     outputs:
-        matrix: ${{ steps.urls.outputs.matrix }}
+        matrix: ${{ steps.urls-from-input.outputs.matrix }}
     steps:
       - name: 'Setup jq'
         uses: dcarbone/install-jq-action@v3
@@ -49,19 +50,26 @@ jobs:
           #echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
           echo "matrix={\"urls\":[\"$full_url\",\"$full_url2\"]}" >> $GITHUB_OUTPUT
 
-      - name: Set job output
-        id: urls
+
+  get-urls-from-api:
+    name: Get Urls from API
+    runs-on: "ubuntu-24.04"
+    if: github.event.inputs.URL == ''
+    outputs:
+        matrix: ${{ steps.urls.outputs.matrix }}
+    steps:
+      - name: 'Log from urls from API'
+        # language=sh
         run: |
-          echo "matrix=${{ steps.urls-from-input.outputs.matrix }}"
-          echo "matrix=${{ steps.urls-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
+          echo "Hello from get url from API"
 
   synchronize:
-    needs: get-urls
+    needs: get-urls-from-api
     name: "Running matrix"
     timeout-minutes: 20
     runs-on: "ubuntu-24.04"
     strategy:
-      matrix: ${{ fromJSON(needs.get-urls.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.get-urls-from-api.outputs.matrix) }}
     steps:
       
       - name: Log variables
