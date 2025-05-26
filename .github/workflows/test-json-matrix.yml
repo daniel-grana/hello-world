@@ -17,7 +17,7 @@ jobs:
     name: Get Urls
     runs-on: "ubuntu-24.04"
     outputs:
-        matrix: ${{ steps.urls-from-input.outputs.matrix }}
+        matrix: ${{ steps.urls.outputs.matrix }}
     steps:
       - name: 'Setup jq'
         uses: dcarbone/install-jq-action@v3
@@ -49,11 +49,11 @@ jobs:
           #echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
           echo "matrix={\"urls\":[\"$full_url\",\"$full_url2\"]}" >> $GITHUB_OUTPUT
 
-      #- name: Set job output
-      #  id: urls
-      #  run: |
-      #    echo "matrix=${{ steps.urls-from-input.outputs.matrix }}"
-      #    echo "matrix=${{ steps.urls-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
+      - name: Set job output
+        id: urls
+        run: |
+          echo "matrix=${{ steps.urls-from-input.outputs.matrix }}"
+          echo "matrix=${{ steps.urls-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
 
   synchronize:
     needs: get-urls
