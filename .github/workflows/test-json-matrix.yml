@@ -48,7 +48,7 @@ jobs:
         id: urls
         run: |
           echo "urls=${{ steps.urls-from-input.outputs.urls }}"
-          echo "fromJson:" ${{ steps.urls-from-input.outputs.urls) }}
+          echo "fromJson:" ${{ fromJSON(steps.urls-from-input.outputs.urls) }}
           echo "urls=${{ steps.urls-from-input.outputs.urls }}" >> $GITHUB_OUTPUT
 
   synchronize:
