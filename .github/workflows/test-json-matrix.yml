@@ -17,7 +17,7 @@ jobs:
     name: Get Urls
     runs-on: "ubuntu-24.04"
     outputs:
-        spaces: ${{ steps.urls.outputs.urls }}
+        matrix: ${{ steps.urls-from-input.outputs.matrix }}
     steps:
       - name: 'Setup jq'
         uses: dcarbone/install-jq-action@v3
@@ -36,20 +36,22 @@ jobs:
         run: |
           # Extract the domain from the input space URL and remove protocol prefix if present
           full_url="${{ github.event.inputs.URL }}"
+          ## test1
           ####### aux=$(jq -nc '{urls: ($ARGS.positional[0] | split(" "))}' --args $full_url)
           ####### echo "urls=$aux" >> $GITHUB_OUTPUT
-          json_array=()
-          json_array+=("\"$full_url\"")
-          json_elements=$(IFS=,; echo "${json_array[*]}")
-          json_output="{ \"urls\": [$json_elements] }"
-          echo "urls=$json_output" | tee -a "$GITHUB_OUTPUT"
+          ## test 2
+          ####### json_array=()
+          ####### json_array+=("\"$full_url\"")
+          ####### json_elements=$(IFS=,; echo "${json_array[*]}")
+          ####### json_output="{ \"urls\": [$json_elements] }"
+          ####### echo "urls=$json_output" | tee -a "$GITHUB_OUTPUT"
+          echo "matrix={\"urls\":[{\"domain\":\"$full_url\"}]}" >> $GITHUB_OUTPUT
 
-      - name: Set job output
-        id: urls
-        run: |
-          echo "urls=${{ steps.urls-from-input.outputs.urls }}"
-          echo "fromJson:" ${{ fromJSON(steps.urls-from-input.outputs.urls) }}
-          echo "urls=${{ steps.urls-from-input.outputs.urls }}" >> $GITHUB_OUTPUT
+      #- name: Set job output
+      #  id: urls
+      #  run: |
+      #    echo "matrix=${{ steps.urls-from-input.outputs.matrix }}"
+      #    echo "matrix=${{ steps.urls-from-input.outputs.matrix }}" >> $GITHUB_OUTPUT
 
   synchronize:
     needs: get-urls
@@ -57,14 +59,11 @@ jobs:
     timeout-minutes: 20
     runs-on: "ubuntu-24.04"
     strategy:
-      matrix: 
-        url: ${{ fromJSON(needs.get-urls.outputs.urls) }}
+      matrix: ${{ fromJSON(needs.get-urls.outputs.matrix) }}
     steps:
       
       - name: Log variables
         env:
           JSON_MATRIX: ${{ toJSON(matrix) }}
-          MATRIX_URL: ${{ toJSON(matrix.url) }}
         run: |
-          echo "MATRIX_URL: $MATRIX_URL"
           echo "JSON_MATRIX: $JSON_MATRIX"
