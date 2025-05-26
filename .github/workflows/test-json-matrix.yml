@@ -36,7 +36,7 @@ jobs:
         run: |
           # Extract the domain from the input space URL and remove protocol prefix if present
           full_url="${{ github.event.inputs.URL }}"
-          aux=jq -nc '{urls: ($ARGS.positional[0] | split(" "))}' --args $full_url
+          aux=$(jq -nc '{urls: ($ARGS.positional[0] | split(" "))}' --args $full_url)
           echo "urls=$aux" >> $GITHUB_OUTPUT
 
       - name: Set job output
